@@ -5,13 +5,8 @@ int main() {
     Wave test = Wave();
     
     test.read("./example/input.wav");
+    test.resize(0.75);
     test.write("./example/output.wav");
-
-    Wave test2 = Wave();
-    
-    test.read("./example/Kino.wav");
-    test.write("./example/outputKino.wav");
-
 
     return 0;
 }

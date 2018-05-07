@@ -21,8 +21,11 @@ void Wave::read(const char *fileName) {
     }
 };
 
-void Wave::resize(int coef) {
-
+void Wave::resize(double coef) {
+    Wave::interpolation(coef);
+    numSamples = ceil(coef * numSamples);
+    samples.subchunk2Size = format.blockAlign * numSamples;
+    descriptor.chunkSize = infoSize + samples.subchunk2Size + waveDescriptorSize;
 };
 
 void Wave::write(const char *fileName) {
@@ -33,8 +36,23 @@ void Wave::write(const char *fileName) {
     fclose(file);
 };
 
-void Wave::interpolation() {
-
+void Wave::interpolation(double coef) {
+    CubicSpline spline = CubicSpline();
+    int newsize = ceil(coef * numSamples);
+    int16_t *time = new int16_t[numSamples];
+    for(int i = 0; i < numSamples; i++)
+        time[i] = i;
+    spline.buildSpline(time, samples.data16, numSamples);
+    int16_t *temp16 = new int16_t[newsize];
+    double value = 0;
+    double step = (double)(numSamples - 1) / newsize;
+    for(int i = 0; i < newsize; i++) {
+        temp16[i] = (int16_t)spline.f(value);
+        value += step;
+    }
+    delete []samples.data16;
+    samples.data16 = temp16;
+    delete []time;
 };
 
 void Wave::headerRead(FILE* file) {
@@ -60,7 +78,7 @@ void Wave::dataRead(FILE* file) {
             for(int i = 0; i < numSamples; i++)
                 fread(&samples.data32[i], int32, 1, file);
             break;
-    } 
+    }
     infoSize = descriptor.chunkSize - samples.subchunk2Size - waveDescriptorSize;
     if(infoSize > 0) {
         samples.info = new int8_t[infoSize];

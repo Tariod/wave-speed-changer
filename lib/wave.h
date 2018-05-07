@@ -2,8 +2,10 @@
 #define WaveH
 
 #include <iostream>
-#include "stdint.h"
+#include <cstdint>
 #include <cstdio>
+#include <cmath>
+#include "CubicSpline.h"
 
 typedef struct {
     int32_t chunkId;
@@ -36,12 +38,12 @@ public:
 
     void read(const char *fileName);
 
-    void resize(int coef);
+    void resize(double coef);
 
     void write(const char *fileName);
 
 private:
-    void interpolation();
+    void interpolation(double coef);
 
     void headerRead(FILE* file);
 
@@ -58,7 +60,9 @@ private:
     riffHeader descriptor;
     subchunk1 format;
     subchunk2 samples;
+
     int numSamples;
     int infoSize;
 };
+
 #endif
