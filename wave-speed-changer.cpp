@@ -1,20 +1,20 @@
 #include <iostream>
+#include <string>
+#include <sstream>
 #include "./lib/wave.h"
+using namespace std;
 
-int main() {
-    Wave cartoon = Wave();
+int main(int val,char* args[]) {   
+    const char* inputFile = args[1];
+    const char* outputFile = args[2];
+    double coef = atof(args[3]);
     
-    cartoon.read("./example/input.wav");
-    cartoon.resize(2);
-    cartoon.write("./example/output.wav");
-
-    Wave kino = Wave();
-    
-    kino.read("./example/Kino.wav");
-    kino.resize(0.50);
-    kino.write("./example/outputKino.wav");
-    kino.resize(2);
-    kino.write("./example/outputKino2.wav");
+    Wave song = Wave();    
+    song.read(inputFile);
+    song.resize(coef);
+    cout << "Scaling sound file... Done." << endl;
+    song.write(outputFile);
+    cout << "Written result to " << outputFile << endl;    
 
     return 0;
 }
