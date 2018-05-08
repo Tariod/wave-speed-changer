@@ -6,10 +6,11 @@
 #define int8 sizeof(int8_t)
 
 Wave::~Wave(){
-
+    Wave::freeMem();
 };
 
 void Wave::read(const char *fileName) {
+    Wave::freeMem();
     FILE* file = fopen(fileName,"rb");
     if(file){
         headerRead(file);
@@ -37,22 +38,43 @@ void Wave::write(const char *fileName) {
 };
 
 void Wave::interpolation(double coef) {
-    CubicSpline spline = CubicSpline();
+    CubicSpline *spline = new CubicSpline [format.numChannels];
     int newsize = ceil(coef * numSamples);
-    int16_t *time = new int16_t[numSamples];
+
+    int32_t *time = new int32_t[numSamples];
     for(int i = 0; i < numSamples; i++)
         time[i] = i;
-    spline.buildSpline(time, samples.data16, numSamples);
-    int16_t *temp16 = new int16_t[newsize];
+
+    int16_t **temp = new int16_t *[format.numChannels];
+    for(int i = 0; i < format.numChannels; i++) {
+        temp[i] = new int16_t[numSamples];
+        for(int j = 0; j < numSamples; j++)
+            temp[i][j] = samples.data16[j][i];
+    }
+
+    for(int i = 0; i < format.numChannels; i++)
+        spline[i].buildSpline(time, temp[i], numSamples);
+
+    int16_t **resizeData = new int16_t *[newsize];
     double value = 0;
     double step = (double)(numSamples - 1) / newsize;
     for(int i = 0; i < newsize; i++) {
-        temp16[i] = (int16_t)spline.f(value);
+        resizeData[i] = new int16_t[format.numChannels];
+        for(int j = 0; j < format.numChannels; j++)
+            resizeData[i][j] = ceil(spline[j].f(value));
         value += step;
     }
+   
+    for(int i = 0; i < numSamples; i++)
+        delete []samples.data16[i];
     delete []samples.data16;
-    samples.data16 = temp16;
+    samples.data16 = resizeData;
+
+    for(int i = 0; i < format.numChannels; i++)
+        delete []temp[i];
+    delete []temp;
     delete []time;
+    delete []spline;
 };
 
 void Wave::headerRead(FILE* file) {
@@ -67,17 +89,11 @@ void Wave::dataRead(FILE* file) {
     fread(&samples.subchunk2Id, int32, 1, file);
     fread(&samples.subchunk2Size, int32, 1, file);
     numSamples = samples.subchunk2Size / format.blockAlign;
-    switch (format.numChannels) {
-        case 1:
-            samples.data16 = new int16_t[numSamples];
-            for(int i = 0; i < numSamples; i++)
-                fread(&samples.data16[i], int16, 1, file);
-            break;
-        case 2:
-            samples.data32 = new int32_t[numSamples];
-            for(int i = 0; i < numSamples; i++)
-                fread(&samples.data32[i], int32, 1, file);
-            break;
+    samples.data16 = new int16_t *[numSamples];
+    for(int i = 0; i < numSamples; i++) {
+        samples.data16[i] = new int16_t[format.numChannels];
+        for(int j = 0; j < format.numChannels; j++)
+            fread(&samples.data16[i][j], int16, 1, file);
     }
     infoSize = descriptor.chunkSize - samples.subchunk2Size - waveDescriptorSize;
     if(infoSize > 0) {
@@ -98,17 +114,17 @@ void Wave::formatWrite(FILE* file) {
 void Wave::dataWrite(FILE* file) {
     fwrite(&samples.subchunk2Id, int32, 1, file);
     fwrite(&samples.subchunk2Size, int32, 1, file);
-    switch (format.numChannels) {
-        case 1:
-            for(int i = 0; i < numSamples; i++)
-                fwrite(&samples.data16[i], int16, 1, file);
-            break;
-        case 2:
-            for(int i = 0; i < numSamples; i++)
-                fwrite(&samples.data32[i], int32, 1, file);
-            break;
-    } 
+    for(int i = 0; i < numSamples; i++)
+        for(int j = 0; j < format.numChannels; j++)
+            fwrite(&samples.data16[i][j], int16, 1, file);
     if(infoSize > 0)
         for(int i = 0; i < infoSize; i++)
             fwrite(&samples.info[i], int8, 1, file);
+};
+
+void Wave::freeMem() {
+    for(int i = 0; i < numSamples; i++)
+        delete []samples.data16[i];
+    delete []samples.data16;
+    delete []samples.info;
 };

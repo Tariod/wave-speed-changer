@@ -2,11 +2,19 @@
 #include "./lib/wave.h"
 
 int main() {
-    Wave test = Wave();
+    Wave cartoon = Wave();
     
-    test.read("./example/input.wav");
-    test.resize(0.75);
-    test.write("./example/output.wav");
+    cartoon.read("./example/input.wav");
+    cartoon.resize(2);
+    cartoon.write("./example/output.wav");
+
+    Wave kino = Wave();
+    
+    kino.read("./example/Kino.wav");
+    kino.resize(0.50);
+    kino.write("./example/outputKino.wav");
+    kino.resize(2);
+    kino.write("./example/outputKino2.wav");
 
     return 0;
 }

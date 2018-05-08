@@ -21,7 +21,7 @@ public:
 
 	~CubicSpline();
 
-	void buildSpline(const int16_t *x, const int16_t *y, int n);
+	void buildSpline(const int32_t *x, const int16_t *y, int n);
 
 	double f(double x) const;
 };

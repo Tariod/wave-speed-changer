@@ -27,8 +27,7 @@ typedef struct {
 typedef struct {
     int32_t subchunk2Id;
     int32_t subchunk2Size;
-    int16_t *data16;
-    int32_t *data32;
+    int16_t **data16;
     int8_t *info;
 } subchunk2;
 
@@ -63,6 +62,8 @@ private:
 
     int numSamples;
     int infoSize;
+
+    void freeMem();
 };
 
 #endif

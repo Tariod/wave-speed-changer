@@ -2,13 +2,13 @@
 
 CubicSpline::CubicSpline(): splines(NULL) {
 
-}
+};
 
 CubicSpline::~CubicSpline() {
 	freeMem();
-}
+};
 
-void CubicSpline::buildSpline(const int16_t *x, const int16_t *y, int n) {
+void CubicSpline::buildSpline(const int32_t *x, const int16_t *y, int n) {
 	freeMem();
 
 	this->n = n;
@@ -48,10 +48,9 @@ void CubicSpline::buildSpline(const int16_t *x, const int16_t *y, int n) {
 		splines[i].d = (splines[i].c - splines[i - 1].c) / h_i;
 		splines[i].b = h_i * (2. * splines[i].c + splines[i - 1].c) / 6. + (y[i] - y[i - 1]) / h_i;
 	}
-}
+};
 
-double CubicSpline::f(double x) const
-{
+double CubicSpline::f(double x) const {
 	if (!splines)
 		return std::numeric_limits<double>::quiet_NaN();
 
@@ -74,9 +73,9 @@ double CubicSpline::f(double x) const
 
 	double dx = (x - s->x);
 	return s->a + (s->b + (s->c / 2. + s->d * dx / 6.) * dx) * dx;
-}
+};
 
 void CubicSpline::freeMem() {
 	delete []splines;
 	splines = NULL;
-}
+};
