@@ -11,6 +11,7 @@ int main(int val,char* args[]) {
     
     Wave song = Wave();    
     song.read(inputFile);
+    cout << "Read" << endl;
     song.resize(coef);
     cout << "Scaling sound file... Done." << endl;
     song.write(outputFile);
